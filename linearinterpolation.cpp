@@ -117,9 +117,8 @@ void interpolationF::SetData(const std::vector<double> &x1Data, const std::vecto
 
 	m_data.resize(m_variableN+1);
 
-	m_data[0] = std::vector<double>(x1Data.begin(), x1Data.begin() + m_dataLength);
-	m_data[1] = std::vector<double>(x2Data.begin(), x2Data.begin() + m_dataLength);
-    m_data[2] = std::vector<double>(0);
+	m_data[0] = std::vector<double>(x1Data.begin(), x1Data.end());
+	m_data[1] = std::vector<double>(x2Data.begin(), x2Data.end());
 	for (const auto &row : fData)
 		for (const auto &elem : row)
 			m_data[2].push_back(elem);
