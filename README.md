@@ -29,26 +29,26 @@ interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const
 ```
 where variable vectors are grids and function values are given by 2D vector, meaning that *fData[i][j]* will corespond to *x1Data[i]* and *x2Data[j]*.  
 
-There is also *setData* function which can be used as "constructor" if class object needs to be defined before the variables and function values are set - for example in a different function. Example usage would be:
+There is also *setData* function which can be used as "constructor" if class object needs to be defined before the variables and function values are set - for example in a different function. Example usage for double data type would be:
 ```
-void loadFunction(interpolationF &intFunction) {
+void loadFunction(interpolationF<double> &intFunction) {
      // prepare x and f data
      intFunction.setData(x, f);
 }
 
 int main() {
-     interpolationF intFunction;
+     interpolationF<double> intFunction;
      loadFunction(intFunction);
 }
 ```
 
 All data is copied inside private class variables, so there is no need to save it after constructing class object.  
 
-For acctual interpolation there is *interpolation* class method that takes values in which the function shoud be interpolated and returns interpolated value. Example usage for one variable function that is interpolated in 2.5 would be:
+For acctual interpolation there is *interpolation* class method that takes values in which the function shoud be interpolated and returns interpolated value. Example usage for one variable function with float data type that is interpolated in 2.5 would be:
 ```
 // prepare x and f data
-interpolationF intFunction(x, f);
-auto interpolatedValue = intFunction.interpolation(2.5);
+interpolationF<float> intFunction(x, f);
+auto interpolatedValue = intFunction.interpolation(2.5f);
 ```
 *interpolation* class method is overloaded to take one, two, three or four inputs, based on the number of variables the interpolated function has and returns template type. Number of variables is set when constructing class object, or calling *setData* class method, and when interpolating, check is performed to confirm that number of inputs for *interpolation* class method is the same as number of variables. If these are not same error is printed to stderr and NaN is returned.  
 Additiona check is perfomered to confirm that *interpolation* inputs are within the domain of the function, and since extrapolation is not implemented, error is printed to stderr and NaN is returned.  
