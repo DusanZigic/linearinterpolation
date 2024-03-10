@@ -11,39 +11,39 @@ public:
 
 	//input is 2 1D arrays:
 	interpolationF(const T *xData, const T *fData, size_t NofElements);
-	void SetData(const T *xData, const T *fData, size_t NofElements);
+	void setData(const T *xData, const T *fData, size_t NofElements);
 
 	//input is 2 1D vectors:
 	interpolationF(const std::vector<T> &xData, const std::vector<T> &fData);
-	void SetData(const std::vector<T> &xData, const std::vector<T> &fData);
+	void setData(const std::vector<T> &xData, const std::vector<T> &fData);
 
 	//input is 3 1D arrays:
 	interpolationF(const T *x1Data, const T *x2Data, const T *fData, size_t NofElements);
-	void SetData(const T *x1Data, const T *x2Data, const T *fData, size_t NofElements);
+	void setData(const T *x1Data, const T *x2Data, const T *fData, size_t NofElements);
 
 	//input is 3 1D vectors:
 	interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &fData);
-	void SetData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &fData);
+	void setData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &fData);
 
 	//input is 2 1D vectors (grids) and 1 2d vector (function values):
 	interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<std::vector<T>> &fData);
-	void SetData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<std::vector<T>> &fData);
+	void setData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<std::vector<T>> &fData);
 
 	//input is 4 1D arrays:
 	interpolationF(const T *x1Data, const T *x2Data, const T *x3Data, const T *fData, size_t NofElements);
-	void SetData(const T *x1Data, const T *x2Data, const T *x3Data, const T *fData, size_t NofElements);
+	void setData(const T *x1Data, const T *x2Data, const T *x3Data, const T *fData, size_t NofElements);
 
 	//input is 4 1D vectors:
 	interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &fData);
-	void SetData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &fData);
+	void setData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &fData);
 
 	//input is 5 1D arrays:
 	interpolationF(const T *x1Data, const T *x2Data, const T *x3Data, const T *x4Data, const T *fData, size_t NofElements);
-	void SetData(const T *x1Data, const T *x2Data, const T *x3Data, const T *x4Data, const T *fData, size_t NofElements);
+	void setData(const T *x1Data, const T *x2Data, const T *x3Data, const T *x4Data, const T *fData, size_t NofElements);
 
 	//input is 5 1D vectors:
 	interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &x4Data, const std::vector<T> &fData);
-	void SetData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &x4Data, const std::vector<T> &fData);
+	void setData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &x4Data, const std::vector<T> &fData);
 
 	//DESTRUCTOR:
 	~interpolationF();

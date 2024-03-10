@@ -13,11 +13,11 @@ interpolationF<T>::interpolationF() {}
 template <typename T>
 interpolationF<T>::interpolationF(const T *xData, const T *fData, size_t NofElements)
 {
-	SetData(xData, fData, NofElements);
+	setData(xData, fData, NofElements);
 }
 
 template <typename T>
-void interpolationF<T>::SetData(const T *xData, const T *fData, size_t NofElements)
+void interpolationF<T>::setData(const T *xData, const T *fData, size_t NofElements)
 {
 	m_variableN = 1;
 	m_dataLength = NofElements;
@@ -38,11 +38,11 @@ void interpolationF<T>::SetData(const T *xData, const T *fData, size_t NofElemen
 template <typename T>
 interpolationF<T>::interpolationF(const std::vector<T> &xData, const std::vector<T> &fData)
 {
-	SetData(xData, fData);
+	setData(xData, fData);
 }
 
 template <typename T>
-void interpolationF<T>::SetData(const std::vector<T> &xData, const std::vector<T> &fData)
+void interpolationF<T>::setData(const std::vector<T> &xData, const std::vector<T> &fData)
 {
 	m_variableN = 1;
 	m_dataLength = fData.size();
@@ -63,11 +63,11 @@ void interpolationF<T>::SetData(const std::vector<T> &xData, const std::vector<T
 template <typename T>
 interpolationF<T>::interpolationF(const T *x1Data, const T *x2Data, const T *fData, size_t NofElements)
 {
-	SetData(x1Data, x2Data, fData, NofElements);
+	setData(x1Data, x2Data, fData, NofElements);
 }
 
 template <typename T>
-void interpolationF<T>::SetData(const T *x1Data, const T *x2Data, const T *fData, size_t NofElements)
+void interpolationF<T>::setData(const T *x1Data, const T *x2Data, const T *fData, size_t NofElements)
 {
 	m_variableN = 2;
 	m_dataLength = NofElements;
@@ -89,11 +89,11 @@ void interpolationF<T>::SetData(const T *x1Data, const T *x2Data, const T *fData
 template <typename T>
 interpolationF<T>::interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &fData)
 {
-	SetData(x1Data, x2Data, fData);
+	setData(x1Data, x2Data, fData);
 }
 
 template <typename T>
-void interpolationF<T>::SetData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &fData)
+void interpolationF<T>::setData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &fData)
 {
 	m_variableN = 2;
 	m_dataLength = fData.size();
@@ -115,11 +115,11 @@ void interpolationF<T>::SetData(const std::vector<T> &x1Data, const std::vector<
 template <typename T>
 interpolationF<T>::interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<std::vector<T>> &fData)
 {
-	SetData(x1Data, x2Data, fData);
+	setData(x1Data, x2Data, fData);
 }
 
 template <typename T>
-void interpolationF<T>::SetData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<std::vector<T>> &fData)
+void interpolationF<T>::setData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<std::vector<T>> &fData)
 {
 	m_variableN = 2;
 	m_dataLength = fData.size();
@@ -143,11 +143,11 @@ void interpolationF<T>::SetData(const std::vector<T> &x1Data, const std::vector<
 template <typename T>
 interpolationF<T>::interpolationF(const T *x1Data, const T *x2Data, const T *x3Data, const T *fData, size_t NofElements)
 {
-	SetData(x1Data, x2Data, x3Data, fData, NofElements);
+	setData(x1Data, x2Data, x3Data, fData, NofElements);
 }
 
 template <typename T>
-void interpolationF<T>::SetData(const T *x1Data, const T *x2Data, const T *x3Data, const T *fData, size_t NofElements)
+void interpolationF<T>::setData(const T *x1Data, const T *x2Data, const T *x3Data, const T *fData, size_t NofElements)
 {
 	m_variableN = 3;
 	m_dataLength = NofElements;
@@ -170,11 +170,11 @@ void interpolationF<T>::SetData(const T *x1Data, const T *x2Data, const T *x3Dat
 template <typename T>
 interpolationF<T>::interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &fData)
 {
-	SetData(x1Data, x2Data, x3Data, fData);
+	setData(x1Data, x2Data, x3Data, fData);
 }
 
 template <typename T>
-void interpolationF<T>::SetData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &fData)
+void interpolationF<T>::setData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &fData)
 {
 	m_variableN = 3;
 	m_dataLength = fData.size();
@@ -197,11 +197,11 @@ void interpolationF<T>::SetData(const std::vector<T> &x1Data, const std::vector<
 template <typename T>
 interpolationF<T>::interpolationF(const T *x1Data, const T *x2Data, const T *x3Data, const T *x4Data, const T *fData, size_t NofElements)
 {
-	SetData(x1Data, x2Data, x3Data, x4Data, fData, NofElements);
+	setData(x1Data, x2Data, x3Data, x4Data, fData, NofElements);
 }
 
 template <typename T>
-void interpolationF<T>::SetData(const T *x1Data, const T *x2Data, const T *x3Data, const T *x4Data, const T *fData, size_t NofElements)
+void interpolationF<T>::setData(const T *x1Data, const T *x2Data, const T *x3Data, const T *x4Data, const T *fData, size_t NofElements)
 {
 	m_variableN = 4;
 	m_dataLength = NofElements;
@@ -225,11 +225,11 @@ void interpolationF<T>::SetData(const T *x1Data, const T *x2Data, const T *x3Dat
 template <typename T>
 interpolationF<T>::interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &x4Data, const std::vector<T> &fData)
 {
-	SetData(x1Data, x2Data, x3Data, x4Data, fData);
+	setData(x1Data, x2Data, x3Data, x4Data, fData);
 }
 
 template <typename T>
-void interpolationF<T>::SetData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &x4Data, const std::vector<T> &fData)
+void interpolationF<T>::setData(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &x3Data, const std::vector<T> &x4Data, const std::vector<T> &fData)
 {
 	m_variableN = 4;
 	m_dataLength = fData.size();
