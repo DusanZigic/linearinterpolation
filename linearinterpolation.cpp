@@ -573,8 +573,6 @@ T interpolationF<T>::interpolation4D(T pointValue1, T pointValue2, T pointValue3
 	return lin1DInterpolation(x1, Q1, pointValue1);
 }
 
-template class interpolationF<int>;
-template class interpolationF<long int>;
 template class interpolationF<float>;
 template class interpolationF<double>;
 template class interpolationF<long double>;
