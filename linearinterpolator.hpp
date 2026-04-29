@@ -30,23 +30,25 @@
         }
 #else
     #define CHECK_BOUNDS(d, val, minV, maxV)                                                             \
-        if ((val) < (minV) || (val) > (maxV)) return static_cast<std::size_t>(-1);
+        if ((val) < (minV) || (val) > (maxV)) {                                                          \
+			return static_cast<std::size_t>(-1);                                                         \
+		}
 #endif
 
 template<typename T>
 class LinearInterpolator {
 public:
-	LinearInterpolator(std::string name = "unnamed") : m_name(name), m_dim(0) {}
+	LinearInterpolator(const char* name = "unnamed") : m_name(name), m_dim(0) {}
 
-	LinearInterpolator(const std::vector<T> &x, const std::vector<T> &f, std::string name = "unnamed") : m_name(name) {
+	LinearInterpolator(const std::vector<T> &x, const std::vector<T> &f, const char* name = "unnamed") : m_name(name) {
 		initializeInternal({x}, f);
 	}
 
-	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &f, std::string name = "unnamed") : m_name(name) { 
+	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &f, const char* name = "unnamed") : m_name(name) { 
 		initializeInternal({x1, x2}, f);
 	}
 
-	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<std::vector<T>> &f_grid, std::string name = "unnamed") : m_name(name) {
+	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<std::vector<T>> &f_grid, const char* name = "unnamed") : m_name(name) {
 		std::vector<T> f_flat;
         f_flat.reserve(x1.size() * x2.size());
         for (const auto& row : f_grid) {
@@ -55,23 +57,31 @@ public:
         initializeInternal({x1, x2}, f_flat);
 	}
 
-	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &f, std::string name = "unnamed") : m_name(name) { 
+	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &f, const char* name = "unnamed") : m_name(name) { 
 		initializeInternal({x1, x2, x3}, f);
 	}
 
-	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &x4, const std::vector<T> &f, std::string name = "unnamed") : m_name(name) { 
+	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &x4, const std::vector<T> &f, const char* name = "unnamed") : m_name(name) { 
 		initializeInternal({x1, x2, x3, x4}, f);
 	}
 
-	void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &f) {
+	void setData(const std::vector<T> &x, const std::vector<T> &f, const char* name = "unnamed") {
+		m_name = name;
+		initializeInternal({x}, f);
+	}
+
+	void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &f, const char* name = "unnamed") {
+		m_name = name;
 		initializeInternal({x1, x2}, f);
 	}
 
-    void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &f) {
+    void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &f, const char* name = "unnamed") {
+		m_name = name;
 		initializeInternal({x1, x2, x3}, f);
 	}
 
-    void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &x4, const std::vector<T> &f) {
+    void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &x4, const std::vector<T> &f, const char* name = "unnamed") {
+		m_name = name;
 		initializeInternal({x1, x2, x3, x4}, f);
 	}
 
@@ -154,7 +164,7 @@ public:
     }
 
 private:
-	std::string m_name;
+	const char* m_name;
 	std::vector<std::vector<T>> m_axes;
     std::vector<T> m_values;
     std::vector<std::size_t> m_gridSizes;
