@@ -1,6 +1,16 @@
 <h1><img src="logo/interpolation.png" alt="logo" width='215' align="right"/> Linear Interpolation Class</h1>
 
-**interpolationF** is a standalone interpolation function class that performs linear interpolation for given data, given on ordered grid. As an example, for a function of 2 variables, *f(x,y)=x+y*, data should be in form:
+**LinearInterpolator** is a high-performance, single-header C++ library for linear interpolation on ordered grids. It is designed for speed-critical applications (such as physics simulations) and supports up to 4D interpolation.
+
+## Features
+* **Single-Header**: Just `#include "linearinterpolator.hpp"` and you are ready to go.
+* **Performance Optimized**: Internal logic is branchless-friendly, uses precomputed boundaries, and supports compiler vectorization.
+* **Hybrid Error Handling**: Fast "poisoned index" crashes in Release mode; detailed diagnostic reports in Debug mode.
+* **Fully Templated**: Supports `float`, `double`, and `long double`.
+
+## Data Format
+
+For a function of 2 variables, *f(x,y)=x+y*, data should be in form:
  x | y | f
 --- | --- | ---
  1 | 1 | 2
@@ -8,49 +18,69 @@
  2 | 1 | 3
  2 | 2 | 4
 
-Entire class is templated for float, double and long double types.  
-Constructors are overloaded so that they can take pointers to arrays or std::vectors as function arguments. Constructors are overloaded to take different number of inputs given the number of variables of a function.  
-For one varible function constructors are given by:  
-```
-interpolationF(const T *xData, const T *fData, size_t NofElements)
-interpolationF(const std::vector<T> &xData, const std::vector<T> &fData)
-```
-while for two varible function constructors are given by:  
-```
-interpolationF(const T *x1Data, const T *x2Data, const T *fData, size_t NofElements)
-interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<T> &fData)
-```
-where *xData, x1Data, x2Data* are function variable points, *fData* are function values and *NofElement* is the number of elements of the table.  
-Constructors for three and four variable functions follow the same pattern. Four variable function is the highest number of variables this class can account for.
+## Usage
 
-There is an additional constructors for two variable function:
-```
-interpolationF(const std::vector<T> &x1Data, const std::vector<T> &x2Data, const std::vector<std::vector<T>> &fData)
-```
-where variable vectors are grids and function values are given by 2D vector, meaning that *fData[i][j]* will corespond to *x1Data[i]* and *x2Data[j]*.  
+### Initialization
 
-There is also *setData* function which can be used as "constructor" if class object needs to be defined before the variables and function values are set - for example in a different function. Example usage for double data type would be:
+The LinearInterpolator uses `std::vector` for data input and includes an optional name parameter. This name is used during **Debug Mode** to identify which specific object is causing an extrapolation error.
+
+### Example: 1D Interpolation
+
+```c++
+// Constructor: (x_vector, f_vector, "OptionalName")
+LinearInterpolator<float> intFunction(x, f, "intFunctionA");
 ```
-void loadFunction(interpolationF<double> &intFunction) {
-     // prepare x and f data
-     intFunction.setData(x, f);
+
+### Example: 4D Interpolation
+
+```c++
+// Constructor: (x1, x2, x3, x4, f, "OptionalName")
+LinearInterpolator<double> photonFlux(energy, angle, temp, density, flux, "PhotonFlux");
+```
+
+### Deferred Initialization
+
+If you need to define the object before the data is ready, you can use the default constructor and the `setData` method later.
+
+```c++
+void loadFunction(LinearInterpolator<double> &intFunction) {
+     // ... prepare vectors ...
+     intFunction.setData(x, y, f, "intFunctionName"); // Name can be set here too
 }
 
 int main() {
-     interpolationF<double> intFunction;
+     LinearInterpolator<double> intFunction;
      loadFunction(intFunction);
 }
 ```
 
-All data is copied inside private class variables, so there is no need to save it after constructing class object.  
+### Interpolation
 
-For acctual interpolation there is *interpolation* class method that takes values in which the function shoud be interpolated and returns interpolated value. Example usage for one variable function with float data type that is interpolated in 2.5 would be:
+```c++
+// For a 2D-initialized object:
+auto val = intFunction.interpolation(2.5, 1.2);
 ```
-// prepare x and f data
-interpolationF<float> intFunction(x, f);
-auto interpolatedValue = intFunction.interpolation(2.5f);
-```
-*interpolation* class method is overloaded to take one, two, three or four inputs, based on the number of variables the interpolated function has and returns template type. Number of variables is set when constructing class object, or calling *setData* class method, and when interpolating, check is performed to confirm that number of inputs for *interpolation* class method is the same as number of variables. If these are not same error is printed to stderr and NaN is returned.  
-Additiona check is perfomered to confirm that *interpolation* inputs are within the domain of the function, and since extrapolation is not implemented, error is printed to stderr and NaN is returned.  
 
-There are additional domain and codomain class methods that return domain of interpolated function as 2D std::vector and 1D std::vector respectively. Domain method returns a 2D std::vector even is the function is has one varible in which case the dimensions of domain vector would be (1, 2).
+## Error Handling & Performance Modes
+
+The library uses a preprocessor-driven safety strategy. Release mode is the default.
+
+### 1. Release Mode (Default)
+In this mode, the library is optimized for maximum throughput (30x speedup compared to standard exception-based code).
+
+- Behavior: If an input is out of bounds (extrapolation), the function returns a "poisoned index" (size_t -1), which triggers a hardware-level SegFault upon memory access.
+
+- Compilation flags: -O3 -march=native
+
+### 2. Debug Mode
+If you encounter a crash and need to find the specific variable causing the issue, recompile with the DEBUG flag.
+
+- Behavior: Prints a detailed report to stderr (including Object Name, Dimension, Value, and Allowed Range) and throws a std::out_of_range exception.
+
+- Compilation flags: -O3 -march=native -DDEBUG
+
+[!IMPORTANT]
+Extrapolation is not supported. Ensure your input values fall within the domain provided during initialization.
+
+## Technical Note
+This class performs internal copies of all data. Once the object is constructed or `setData` is called, you may safely delete or modify your original data structures.
