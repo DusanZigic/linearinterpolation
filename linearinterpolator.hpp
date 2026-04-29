@@ -1,22 +1,35 @@
 #ifndef LINEAR_INTERPOLATOR_HPP
 #define LINEAR_INTERPOLATOR_HPP
 
+#include <iostream>
+#include <string>
 #include <vector>
 #include <array>
-#include <algorithm>
 #include <cstddef>
-#include <cstdio>
-#include <exception>
+#include <stdexcept>
 
+/** * ERROR HANDLING STRATEGY:
+ * To maintain the speedup in production, we avoid all complex logic (strings, throws) 
+ * in the hot path. 
+ * * - RELEASE MODE (Default): Returns a 'poisoned' index (size_t -1). This is branchless-friendly 
+ * and will cause a hardware-level SegFault immediately upon memory access, providing 
+ * maximum speed with a 'fail-fast' behavior.
+ * * - DEBUG MODE (-DDEBUG): Prints full context (Object Name, Dimension, Value) to stderr 
+ * and throws an exception for easy debugging.
+ */
 #ifdef DEBUG
-    #define CHECK_BOUNDS(d, val, minV, maxV)                                             \
-        if ((val) < (minV) || (val) > (maxV)) {                                          \
-            fprintf(stderr, "\n[EXTRAPOLATION] %s | Dim %d | Val %f | Range [%f, %f]\n", \
-                    m_name.c_str(), (d), (double)(val), (double)(minV), (double)(maxV)); \
-            std::terminate();                                                            \
+    #define CHECK_BOUNDS(d, val, minV, maxV)                                                             \
+        if ((val) < (minV) || (val) > (maxV)) {                                                          \
+            std::string msg = "\n[EXTRAPOLATION ERROR]"                                                  \
+                              " | Object: " + std::string(m_name) +                                      \
+                              " | Dimension: " + std::to_string(d) +                                     \
+                              " | Value: " + std::to_string(val) +                                       \
+                              " | Domain: [" + std::to_string(minV) + ", " + std::to_string(maxV) + "]"; \
+            std::cerr << msg << std::endl;                                                               \
+			throw std::out_of_range(msg);                                                                \
         }
 #else
-    #define CHECK_BOUNDS(d, val, minV, maxV)                                             \
+    #define CHECK_BOUNDS(d, val, minV, maxV)                                                             \
         if ((val) < (minV) || (val) > (maxV)) return static_cast<std::size_t>(-1);
 #endif
 
@@ -64,10 +77,6 @@ public:
 
 	inline T interpolate(T x) const {
         std::size_t i = locateGridIndex(0, x);
-		if (i == std::size_t(-1)) [[unlikely]] {
-			fprintf(stderr, "\n[FATAL] Extrapolation in %s | Dim 0: %f\n", m_name.c_str(), x);
-        	std::terminate();
-		}
 
         std::size_t ss = m_searchStrides[0];
         
@@ -78,12 +87,8 @@ public:
 
     inline T interpolate(T x1, T x2) const {
         std::size_t i1 = locateGridIndex(0, x1), i2 = locateGridIndex(1, x2);
-		// if ((i1 | i2) == std::size_t(-1)) [[unlikely]] {
-		// 	fprintf(stderr, "\n[FATAL] Extrapolation in %s | Dim 0: %f, Dim 1: %f\n", m_name.c_str(), x1, x2);
-        // 	std::terminate();
-		// }
 
-        std::size_t ss1 = m_searchStrides[0], ss2 = m_searchStrides[1];
+		std::size_t ss1 = m_searchStrides[0], ss2 = m_searchStrides[1];
         std::size_t s0 = m_memStrides[0];
 
         T w1 = (x1 - m_axes[0][i1 * ss1]) / (m_axes[0][(i1 + 1) * ss1] - m_axes[0][i1 * ss1]);
@@ -100,10 +105,6 @@ public:
 
     inline T interpolate(T x1, T x2, T x3) const {
         std::size_t i1 = locateGridIndex(0, x1), i2 = locateGridIndex(1, x2), i3 = locateGridIndex(2, x3);
-		// if ((i1 | i2 | i3) == static_cast<std::size_t>(-1)) [[unlikely]] {
-        //     fprintf(stderr, "\n[FATAL] Extrapolation in %s | Dim 0: %f, Dim 1: %f, Dim 2: %f\n", m_name.c_str(), x1, x2, x3);
-        //     std::terminate(); 
-        // }
 
         std::size_t ss1 = m_searchStrides[0], ss2 = m_searchStrides[1], ss3 = m_searchStrides[2];
         std::size_t s0 = m_memStrides[0], s1 = m_memStrides[1];
@@ -126,12 +127,9 @@ public:
 
         return c0*(1-w3) + c1*w3;
     }
+
     inline T interpolate(T x1, T x2, T x3, T x4) const {
         std::size_t i[4] = {locateGridIndex(0, x1), locateGridIndex(1, x2), locateGridIndex(2, x3), locateGridIndex(3, x4)};
-		// if ((i[0] | i[1] | i[2] | i[3]) == static_cast<std::size_t>(-1)) [[unlikely]] {
-        //     fprintf(stderr, "\n[FATAL] Extrapolation in %s | Dim 0: %f, Dim 1: %f, Dim 2: %f, Dim 3: %f\n", m_name.c_str(), x1, x2, x3, x4);
-        //     std::terminate();
-        // }
 
         T w[4];
         for(int d=0; d<4; ++d) {
