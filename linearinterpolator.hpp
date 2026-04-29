@@ -160,6 +160,7 @@ private:
     std::vector<std::size_t> m_gridSizes;
     std::vector<std::size_t> m_memStrides;
     std::vector<std::size_t> m_searchStrides;
+	std::vector<T> m_minValues, m_maxValues;
     int m_dim;
 	
 	void initializeInternal(const std::vector<std::vector<T>> &axes, const std::vector<T> &f) {
@@ -173,6 +174,8 @@ private:
 		m_gridSizes.resize(m_dim);
         m_searchStrides.resize(m_dim);
         m_memStrides.assign(m_dim, 1);
+		m_minValues.resize(m_dim);
+        m_maxValues.resize(m_dim);
 
         for (int d = 0; d < m_dim; ++d) {
 			const auto& vec = m_axes[d];
@@ -194,6 +197,9 @@ private:
 				m_searchStrides[d] = 1;
                 m_gridSizes[d] = vec.size();
 			}
+
+			m_minValues[d] = vec[0];
+			m_maxValues[d] = vec[(m_gridSizes[d] - 1) * m_searchStrides[d]];
         }
 
         for (int d = m_dim - 2; d >= 0; --d) {
@@ -202,19 +208,18 @@ private:
 	}
 
 	inline std::size_t locateGridIndex(int axis, T val) const {
-        const auto& vec = m_axes[axis];
-        std::size_t ss = m_searchStrides[axis];
-        std::size_t n = m_gridSizes[axis];
-
-		T minV = vec[0];
-        T maxV = vec[(n - 1) * ss];
+		const T minV = m_minValues[axis];
+    	const T maxV = m_maxValues[axis];
 
 		CHECK_BOUNDS(axis, val, minV, maxV);
 
 		if (val <= minV) return 0;
-        if (val >= maxV) return n - 2;
+        if (val >= maxV) return m_gridSizes[axis] - 2;
 
-        std::size_t low = 0, high = n - 2, ans = 0;
+        const auto& vec = m_axes[axis];
+        std::size_t ss = m_searchStrides[axis];
+        std::size_t low = 0, high = m_gridSizes[axis] - 2, ans = 0;
+
         while (low <= high) {
             std::size_t mid = low + (high - low) / 2;
             if (vec[mid * ss] <= val) {
