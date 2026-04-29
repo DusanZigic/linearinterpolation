@@ -9,61 +9,43 @@
 template<typename T>
 class LinearInterpolator {
 public:
-	LinearInterpolator(): m_dim(0) {}
+	LinearInterpolator(std::string name = "unnamed") : m_name(name), m_dim(0) {}
 
-	LinearInterpolator(const std::vector<T> &x, const std::vector<T> &f) {
-		setData(x, f);
+	LinearInterpolator(const std::vector<T> &x, const std::vector<T> &f, std::string name = "unnamed") : m_name(name) {
+		initializeInternal({x}, f);
 	}
-	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &f) {
-		setData(x1, x2, f);
+
+	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &f, std::string name = "unnamed") : m_name(name) { 
+		initializeInternal({x1, x2}, f);
 	}
-	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<std::vector<T>> &f) {
-		setData(x1, x2, f);
+
+	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<std::vector<T>> &f_grid, std::string name = "unnamed") : m_name(name) {
+		std::vector<T> f_flat;
+        f_flat.reserve(x1.size() * x2.size());
+        for (const auto& row : f_grid) {
+            f_flat.insert(f_flat.end(), row.begin(), row.end());
+        }
+        initializeInternal({x1, x2}, f_flat);
 	}
-	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &f) {
-		setData(x1, x2, x3, f);
+
+	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &f, std::string name = "unnamed") : m_name(name) { 
+		initializeInternal({x1, x2, x3}, f);
 	}
-	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &x4, const std::vector<T> &f) {
-		setData(x1, x2, x3, x4, f);
+
+	LinearInterpolator(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &x4, const std::vector<T> &f, std::string name = "unnamed") : m_name(name) { 
+		initializeInternal({x1, x2, x3, x4}, f);
 	}
-	
-	void setData(const std::vector<T> &x1, const std::vector<T> &f) {
-			m_axes = {x1};
-			m_values = f;
-			m_dim = 1;
-			precomputeStrides();
-		}
 
 	void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &f) {
-		m_axes = {x1, x2};
-		m_values = f;
-		m_dim = 2;
-		precomputeStrides();
+		initializeInternal({x1, x2}, f);
 	}
 
-	void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<std::vector<T>> &f) {
-		m_axes = {x1, x2};
-		m_values.clear();
-		m_values.reserve(x1.size() * x2.size());
-		for(const auto& row : f) {
-			m_values.insert(m_values.end(), row.begin(), row.end());
-		}
-		m_dim = 2;
-		precomputeStrides();
+    void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &f) {
+		initializeInternal({x1, x2, x3}, f);
 	}
 
-	void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &f) {
-		m_axes = {x1, x2, x3};
-		m_values = f;
-		m_dim = 3;
-		precomputeStrides();
-	}
-
-	void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &x4, const std::vector<T> &f) {
-		m_axes = {x1, x2, x3, x4};
-		m_values = f;
-		m_dim = 4;
-		precomputeStrides();
+    void setData(const std::vector<T> &x1, const std::vector<T> &x2, const std::vector<T> &x3, const std::vector<T> &x4, const std::vector<T> &f) {
+		initializeInternal({x1, x2, x3, x4}, f);
 	}
 
 	inline T interpolate(T x) const {
@@ -142,13 +124,21 @@ public:
     }
 
 private:
+	std::string m_name;
 	std::vector<std::vector<T>> m_axes;
     std::vector<T> m_values;
     std::vector<size_t> m_gridSizes;
     std::vector<size_t> m_memStrides;
     std::vector<size_t> m_searchStrides;
     int m_dim;
-		
+	
+	void initializeInternal(const std::vector<std::vector<T>> &axes, const std::vector<T> &f) {
+        m_axes = axes;
+        m_values = f;
+        m_dim = static_cast<int>(axes.size());
+        precomputeStrides();
+    }
+
 	void precomputeStrides() {
 		m_gridSizes.resize(m_dim);
         m_searchStrides.resize(m_dim);
