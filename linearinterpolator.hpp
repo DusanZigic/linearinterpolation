@@ -1,24 +1,26 @@
 #ifndef LINEAR_INTERPOLATOR_HPP
 #define LINEAR_INTERPOLATOR_HPP
 
-#include <iostream>
-#include <string>
 #include <vector>
 #include <array>
 #include <cstddef>
-#include <stdexcept>
 
-/** * ERROR HANDLING STRATEGY:
- * To maintain the speedup in production, we avoid all complex logic (strings, throws) 
- * in the hot path. 
- * * - RELEASE MODE (Default): Returns a 'poisoned' index (size_t -1). This is branchless-friendly 
- * and will cause a hardware-level SegFault immediately upon memory access, providing 
- * maximum speed with a 'fail-fast' behavior.
- * * - DEBUG MODE (-DDEBUG): Prints full context (Object Name, Dimension, Value) to stderr 
- * and throws an exception for easy debugging.
+/**
+ * BOUNDARY HANDLING STRATEGY:
+ * By default, this class performs "clipping" (clamping the input to the grid range).
+ * This is the high-performance path, allowing the compiler to use branchless 
+ * instructions and vectorization.
+ *
+ * If the compilation flag -DCHECK_EXTRAPOLATION is set, the VALIDATE_BOUNDS 
+ * macro will instead throw a std::out_of_range exception if an input is 
+ * outside the grid domain. Use this for debugging or pre-run checks.
  */
-#ifdef DEBUG
-    #define CHECK_BOUNDS(d, val, minV, maxV)                                                             \
+#ifdef CHECK_EXTRAPOLATION
+    #include <iostream>
+    #include <stdexcept>
+    #include <string>
+
+    #define VALIDATE_BOUNDS(d, val, minV, maxV)                                                          \
         if ((val) < (minV) || (val) > (maxV)) {                                                          \
             std::string msg = "\n[EXTRAPOLATION ERROR]"                                                  \
                               " | Object: " + std::string(m_name) +                                      \
@@ -29,10 +31,7 @@
 			throw std::out_of_range(msg);                                                                \
         }
 #else
-    #define CHECK_BOUNDS(d, val, minV, maxV)                                                             \
-        if ((val) < (minV) || (val) > (maxV)) {                                                          \
-			return static_cast<std::size_t>(-1);                                                         \
-		}
+    #define VALIDATE_BOUNDS(d, val, minV, maxV) 
 #endif
 
 template<typename T>
@@ -221,7 +220,7 @@ private:
 		const T minV = m_minValues[axis];
     	const T maxV = m_maxValues[axis];
 
-		CHECK_BOUNDS(axis, val, minV, maxV);
+		VALIDATE_BOUNDS(axis, val, minV, maxV);
 
 		if (val <= minV) return 0;
         if (val >= maxV) return m_gridSizes[axis] - 2;
