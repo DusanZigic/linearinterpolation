@@ -6,19 +6,30 @@
 #include <cstddef>
 
 /**
- * BOUNDARY HANDLING STRATEGY:
- * By default, this class performs "clipping" (clamping the input to the grid range).
+ * SANITY CHECK STRATEGY:
+ * By default, this library is optimized for "hot-path" execution (no checks, maximum speed).
  * This is the high-performance path, allowing the compiler to use branchless 
  * instructions and vectorization.
- *
- * If the compilation flag -DCHECK_EXTRAPOLATION is set, the VALIDATE_BOUNDS 
- * macro will instead throw a std::out_of_range exception if an input is 
- * outside the grid domain. Use this for debugging or pre-run checks.
+ * 
+ * If -DFAST_SIM_STRICT is defined, the following safety gates are enabled:
+ * 1. VALIDATE_DIMENSIONS: ensures the number of arguments in interpolate() 
+ *    matches the table dimensions (prevents logic errors).
+ * 2. VALIDATE_BOUNDS: throws an exception on extrapolation
  */
-#ifdef CHECK_EXTRAPOLATION
+#ifdef FAST_SIM_STRICT
     #include <iostream>
     #include <stdexcept>
     #include <string>
+
+    #define VALIDATE_DIMENSIONS(expected, actual)                                                        \
+        if ((expected) != (actual)) {                                                                    \
+            std::string msg = "\n[DIMENSION ERROR]"                                                      \
+                              " | Object: " + std::string(m_name) +                                      \
+                              " | Expected: " + std::to_string(expected) + "D" +                         \
+                              " | Received: " + std::to_string(actual) + "D";                            \
+            std::cerr << msg << std::endl;                                                               \
+            throw std::invalid_argument(msg);                                                            \
+        }
 
     #define VALIDATE_BOUNDS(d, val, minV, maxV)                                                          \
         if ((val) < (minV) || (val) > (maxV)) {                                                          \
@@ -31,6 +42,7 @@
 			throw std::out_of_range(msg);                                                                \
         }
 #else
+    #define VALIDATE_DIMENSIONS(expected, actual)
     #define VALIDATE_BOUNDS(d, val, minV, maxV) 
 #endif
 
@@ -85,6 +97,8 @@ public:
 	}
 
 	inline T interpolate(T x) const {
+        VALIDATE_DIMENSIONS(m_dim, 1);
+
         std::size_t i = locateGridIndex(0, x);
 
         std::size_t ss = m_searchStrides[0];
@@ -95,6 +109,8 @@ public:
     }
 
     inline T interpolate(T x1, T x2) const {
+        VALIDATE_DIMENSIONS(m_dim, 2);
+
         std::size_t i1 = locateGridIndex(0, x1), i2 = locateGridIndex(1, x2);
 
 		std::size_t ss1 = m_searchStrides[0], ss2 = m_searchStrides[1];
@@ -113,6 +129,8 @@ public:
     }
 
     inline T interpolate(T x1, T x2, T x3) const {
+        VALIDATE_DIMENSIONS(m_dim, 3);
+        
         std::size_t i1 = locateGridIndex(0, x1), i2 = locateGridIndex(1, x2), i3 = locateGridIndex(2, x3);
 
         std::size_t ss1 = m_searchStrides[0], ss2 = m_searchStrides[1], ss3 = m_searchStrides[2];
@@ -138,6 +156,8 @@ public:
     }
 
     inline T interpolate(T x1, T x2, T x3, T x4) const {
+        VALIDATE_DIMENSIONS(m_dim, 4);
+        
         std::size_t i[4] = {locateGridIndex(0, x1), locateGridIndex(1, x2), locateGridIndex(2, x3), locateGridIndex(3, x4)};
 
         T w[4];
