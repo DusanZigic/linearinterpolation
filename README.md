@@ -5,82 +5,97 @@
 ## Features
 * **Single-Header**: Just `#include "linearinterpolator.hpp"` and you are ready to go.
 * **Performance Optimized**: Internal logic is branchless-friendly, uses precomputed boundaries, and supports compiler vectorization.
-* **Hybrid Error Handling**: Fast "poisoned index" crashes in Release mode; detailed diagnostic reports in Debug mode.
+* **Hybrid Error Handling**: Fast "clipping" behavior by default for production; detailed diagnostic reports and dimension checking when strict mode is enabled.
 * **Fully Templated**: Supports `float`, `double`, and `long double`.
 
 ## Data Format
 
-For a function of 2 variables, *f(x,y)=x+y*, data should be in form:
- x | y | f
---- | --- | ---
- 1 | 1 | 2
- 1 | 2 | 3
- 2 | 1 | 3
- 2 | 2 | 4
+The library supports two ways of defining the grid:
+
+1. **Implicit (Cartesian Product) Grid**: Provide only the unique coordinates for each axis. The library assumes a regular, repeating grid.
+     - 2-variable function ($f\left(x,y\right)=x+y$) example:
+          $\\x=\{1, 2\},$
+          $\\y=\{1, 2\},$
+          $\\f=\{2, 3, 3, 4\}$
+2. **Explicit Flattened Vectors**: Provide the full coordinate for every data point.
+     - 2-variable function ($f\left(x,y\right)=x+y$) example:
+          $\\x=\{1, 1, 2, 2\},$
+          $\\y=\{1, 2, 1, 2\},$
+          $\\f=\{2, 3, 3, 4\}$
 
 ## Usage
 
 ### Initialization
 
-The LinearInterpolator uses `std::vector` for data input and includes an optional name parameter. This name is used during **Debug Mode** to identify which specific object is causing an extrapolation error.
+The `LinearInterpolator` uses `std::vector` for data input and includes an optional name parameter. While optional, providing a name is **highly recommended** for debugging, as it will be printed in error messages to identify which specific object triggered an issue.
 
-### Example: 1D Interpolation
+### 1. Standard Initialization
+
+Use the constructor directly when your data vectors are already prepared in the same scope.
 
 ```c++
-// Constructor: (x_vector, f_vector, "OptionalName")
-LinearInterpolator<float> intFunction(x, f, "intFunctionA");
+// 1D Example: f(x)
+std::vector<double> energy = {1.0, 2.0, 3.0};
+std::vector<double> dEdx = {0.15, 0.12, 0.10};
+
+// Constructor: (axis_vectors..., data_vector, "OptionalName")
+LinearInterpolator<double> stopPower(energy, dEdx, "StopPower");
+
+// Perform interpolation
+double loss = stopPower.interpolation(2.5);
 ```
 
-### Example: 4D Interpolation
+### 2. Deferred Initialization (Loading from File)
+
+In many simulations, data is loaded via a dedicated parser. You can define the object first and populate it later using `setData`.
 
 ```c++
-// Constructor: (x1, x2, x3, x4, f, "OptionalName")
-LinearInterpolator<double> photonFlux(energy, angle, temp, density, flux, "PhotonFlux");
-```
+#include "linearinterpolator.hpp"
+#include <vector>
 
-### Deferred Initialization
-
-If you need to define the object before the data is ready, you can use the default constructor and the `setData` method later.
-
-```c++
-void loadFunction(LinearInterpolator<double> &intFunction) {
-     // ... prepare vectors ...
-     intFunction.setData(x, y, f, "intFunctionName"); // Name can be set here too
+// Function to simulate loading data from a file
+void loadFluxData(LinearInterpolator<double>& fluxInterpolator) {
+    std::vector<double> energy, angle, temp, density, flux;
+    // ... logic to read data from a file into vectors ...
+    
+    // Populate the interpolator and assign a name for debugging
+    fluxInterpolator.setData(energy, angle, temp, density, flux, "PhotonFlux4D");
 }
 
 int main() {
-     LinearInterpolator<double> intFunction;
-     loadFunction(intFunction);
+    // Default constructor
+    LinearInterpolator<double> flux;
+    
+    // Load data in a different function
+    loadFluxData(flux);
+    
+    // Ready for use in the simulation loop
+    double val = flux.interpolation(12.5, 0.8);
+    return 0;
 }
 ```
 
-### Interpolation
+## Performance vs. Safety Modes
 
-```c++
-// For a 2D-initialized object:
-auto val = intFunction.interpolation(2.5, 1.2);
-```
+The `LinearInterpolator` is designed to be "fast by default." Boundary behavior is controlled via the `FAST_SIM_STRICT` compilation flag.
 
-## Error Handling & Performance Modes
+### 1. Fast Mode (Default)
+In the default state, no "sanity" checks are performed.
 
-The library uses a preprocessor-driven safety strategy. Release mode is the default.
+- **Behavior**: If an input is outside the grid range, the interpolator clamps the value to the nearest edge. It does not check if the number of arguments matches the dimensions, assuming the caller is correct to avoid branching overhead.
 
-### 1. Release Mode (Default)
-In this mode, the library is optimized for maximum throughput (30x speedup compared to standard exception-based code).
+- **Benefit**: Maximum throughput and vectorization. The compiler can optimize the clipping into branchless CPU instructions.
 
-- Behavior: If an input is out of bounds (extrapolation), the function returns a "poisoned index" (size_t -1), which triggers a hardware-level SegFault upon memory access.
+- **Compilation flag(s)**: `-O3 -march=native`
 
-- Compilation flags: -O3 -march=native
+### 2. Strict Boundary Mode
+To detect if a simulation is drifting outside the valid data domain or if dimensionality is mismatched, enable strict checking.
 
-### 2. Debug Mode
-If you encounter a crash and need to find the specific variable causing the issue, recompile with the DEBUG flag.
+- **Behavior**: The library verifies that the number of arguments matches the table dimensions and checks if inputs are within range. It prints a detailed report to `stderr` (including the object name) and throws `std::invalid_argument` for dimension errors or `std::out_of_range` for extrapolation.
 
-- Behavior: Prints a detailed report to stderr (including Object Name, Dimension, Value, and Allowed Range) and throws a std::out_of_range exception.
+- **Usage**: Recommended for "pre-flight" sanity checks or debugging before long-running jobs.
 
-- Compilation flags: -O3 -march=native -DDEBUG
-
-[!IMPORTANT]
-Extrapolation is not supported. Ensure your input values fall within the domain provided during initialization.
+- **Compilation flag(s)**: `-DFAST_SIM_STRICT`
 
 ## Technical Note
-This class performs internal copies of all data. Once the object is constructed or `setData` is called, you may safely delete or modify your original data structures.
+This class performs internal copies of all data. Once the object is constructed or `setData` is called, you may safely delete or modify your original data structures to save memory.
