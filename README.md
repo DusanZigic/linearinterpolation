@@ -14,14 +14,20 @@ The library supports two ways of defining the grid:
 
 1. **Implicit (Cartesian Product) Grid**: Provide only the unique coordinates for each axis. The library assumes a regular, repeating grid.
      - 2-variable function ($f\left(x,y\right)=x+y$) example:
-          $\\x=\{1, 2\},$
-          $\\y=\{1, 2\},$
-          $\\f=\{2, 3, 3, 4\}$
+          
+          $x=\{1, 2\},$
+
+          $y=\{1, 2\},$
+          
+          $f=\{2, 3, 3, 4\}$
 2. **Explicit Flattened Vectors**: Provide the full coordinate for every data point.
      - 2-variable function ($f\left(x,y\right)=x+y$) example:
-          $\\x=\{1, 1, 2, 2\},$
-          $\\y=\{1, 2, 1, 2\},$
-          $\\f=\{2, 3, 3, 4\}$
+          
+          $x=\{1, 1, 2, 2\},$
+          
+          $y=\{1, 2, 1, 2\},$
+          
+          $f=\{2, 3, 3, 4\}$
 
 ## Usage
 
